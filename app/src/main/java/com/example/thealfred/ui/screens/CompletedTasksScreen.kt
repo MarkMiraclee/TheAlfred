@@ -52,6 +52,15 @@ private fun getThreatColor(threatLevel: ThreatLevel): Color {
 @Composable
 fun CompletedTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     val completedTasks by viewModel.completedTasks.collectAsState()
+    var lastClickTime by remember { mutableStateOf(0L) }
+
+    fun debouncedAction(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > DEBOUNCE_INTERVAL_MS) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
 
     val groupedByDay = completedTasks
         .filter { it.completedAt != null }
@@ -62,7 +71,7 @@ fun CompletedTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit
             TopAppBar(
                 title = { Text("COMPLETED THREATS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -97,7 +106,7 @@ fun CompletedTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit
                         Spacer(modifier = Modifier.height(16.dp))
 
                         val groupedByCategory = tasksOnDay.groupBy { it.category }
-                        val totalXpOnDay = tasksOnDay.sumOf { it.effectiveXpValue }
+                        val totalXpOnDay = tasksOnDay.sumOf { it.xpValue }
 
                         groupedByCategory.forEach { (category, tasks) ->
                             ExpandableCategoryGroup(
@@ -120,7 +129,7 @@ private fun ExpandableCategoryGroup(
     totalXpOnDay: Int
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    val categoryXpOnDay = tasks.sumOf { it.effectiveXpValue }
+    val categoryXpOnDay = tasks.sumOf { it.xpValue }
 
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
         // Кликабельный заголовок категории
@@ -176,7 +185,7 @@ private fun CompletedTaskRow(task: Task) {
         )
         Spacer(modifier = Modifier.width(16.dp))
         Text(
-            text = "+${task.effectiveXpValue} XP",
+            text = "+${task.xpValue} XP",
             color = getThreatColor(task.threatLevel),
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp

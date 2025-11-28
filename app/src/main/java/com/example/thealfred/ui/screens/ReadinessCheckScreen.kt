@@ -6,7 +6,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +19,16 @@ import androidx.compose.ui.unit.sp
 fun ReadinessCheckScreen(
     onRitualCompleted: () -> Unit
 ) {
+    var lastClickTime by remember { mutableStateOf(0L) }
+
+    fun debouncedAction(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > DEBOUNCE_INTERVAL_MS) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,7 +52,7 @@ fun ReadinessCheckScreen(
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
-            onClick = onRitualCompleted,
+            onClick = { debouncedAction { onRitualCompleted() } },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("RITUAL COMPLETE (50 PUSH-UPS)", color = Color.White)

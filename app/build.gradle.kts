@@ -51,7 +51,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation("androidx.compose.material:material-icons-extended") // Иконки
     // Добавляем зависимость для ViewModel в Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     // Зависимость для Jetpack Navigation
     implementation("androidx.navigation:navigation-compose:2.9.6")
     testImplementation(libs.junit)
@@ -61,7 +61,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    val roomVersion = "2.6.1" // Рекомендуемая версия Room
+    val roomVersion = "2.8.4" // Рекомендуемая версия Room
 
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")

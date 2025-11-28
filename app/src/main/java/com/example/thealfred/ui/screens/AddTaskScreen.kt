@@ -27,6 +27,13 @@ fun AddTaskScreen(
     var selectedThreatLevel by remember { mutableStateOf(ThreatLevel.MEDIUM_THREAT) }
     var selectedDueDate by remember { mutableStateOf<Long?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var taskAdded by remember { mutableStateOf(false) }
+
+    if (taskAdded) {
+        LaunchedEffect(Unit) {
+            onNavigateBack()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -112,11 +119,11 @@ fun AddTaskScreen(
                             dueDate = selectedDueDate
                         )
                         viewModel.addNewTask(newTask)
-                        onNavigateBack() // Возвращаемся назад
+                        taskAdded = true
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = title.isNotBlank()
+                enabled = title.isNotBlank() && !taskAdded
             ) {
                 Text("ADD THREAT")
             }

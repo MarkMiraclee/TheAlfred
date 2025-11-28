@@ -8,8 +8,8 @@ import androidx.room.TypeConverters
 
 // 1. Аннотация Database: Указываем все Entity, версию и используемые TypeConverters
 @Database(
-    entities = [Task::class, Progress::class], // Наши сущности (Entity)
-    version = 1,              // Версия базы данных
+    entities = [Task::class, Progress::class, Template::class], // Наши сущности (Entity)
+    version = 2,              // Версия базы данных
     exportSchema = false      // Не экспортировать схему в файл
 )
 @TypeConverters(Converters::class)
@@ -17,6 +17,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     // 2. DAO: Абстрактная функция, которая возвращает наш DAO
     abstract fun taskDao(): TaskDao
+    abstract fun templateDao(): TemplateDao
 
     // 3. Companion Object: Паттерн Singleton для гарантированного создания только одного экземпляра БД
     companion object {
