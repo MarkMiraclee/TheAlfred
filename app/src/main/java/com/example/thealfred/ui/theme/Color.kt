@@ -30,12 +30,20 @@ val WarningOrange = Color(0xFFFFA500)       // Оранжевый для пре�
 
 // --- Цвета для рангов (Апгрейды) ---
 
+// D-ранг (Пещера)
+val RankD_Primary = Color(0xFF292828) 
+val RankD_Surface = Color(0xFF333232) // Темно-серый для карточек
+
+// C-ранг (Пещера с компьютером)
+val RankC_Primary = Color(0xFF36454F) 
+val RankC_Surface = Color(0xFF40515E) // Темно-сине-серый для карточек
+
 // B-ранг (Бронза/Темное золото)
-val RankB_Primary = Color(0xFFB8860B)
-val RankB_Surface = Color(0xFF2A2218)   // Поверхность карточек с бронзовым оттенком
+val RankB_Primary = Color(0xFF192A56)
+val RankB_Surface = Color(0xFF1F3A6E)   // Поверхность карточек с бронзовым оттенком
 
 // A-ранг (Серебро)
-val RankA_Primary = Color(0xFFC0C0C0)
+val RankA_Primary = Color(0xFFBCC0C2)
 val RankA_Surface = Color(0xFF2C2C2E)   // Поверхность карточек с серебряным оттенком
 
 // S-ранг (Золото)

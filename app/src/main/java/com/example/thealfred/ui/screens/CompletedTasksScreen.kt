@@ -77,7 +77,8 @@ fun CompletedTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        }
+        },
+        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),

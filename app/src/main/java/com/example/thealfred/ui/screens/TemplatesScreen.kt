@@ -49,7 +49,8 @@ fun TemplatesScreen(viewModel: MissionViewModel, onNavigateToAddTask: () -> Unit
             FloatingActionButton(onClick = { debouncedAction { onNavigateToAddTask() } }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Template")
             }
-        }
+        },
+        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
     ) { paddingValues ->
         if (templates.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {

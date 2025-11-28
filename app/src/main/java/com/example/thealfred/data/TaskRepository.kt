@@ -37,8 +37,8 @@ class TaskRepository(private val taskDao: TaskDao, private val templateDao: Temp
         taskDao.updateTask(updatedTask)
 
         val xpChange = when {
-            isCompleted && !task.isCompleted -> task.effectiveXpValue
-            !isCompleted && task.isCompleted -> -task.effectiveXpValue
+            isCompleted && !task.isCompleted -> task.xpValue
+            !isCompleted && task.isCompleted -> -task.xpValue
             else -> 0
         }
 
@@ -75,7 +75,7 @@ class TaskRepository(private val taskDao: TaskDao, private val templateDao: Temp
         )
         taskDao.insertTask(ritualTask)
 
-        val xpChange = ritualTask.effectiveXpValue
+        val xpChange = ritualTask.xpValue
         val newTotalXP = currentProgress.totalVigilancePoints + xpChange
         val newRank = determineRank(newTotalXP)
         val newPhysicalConditioningXp = currentProgress.physicalConditioningXp + xpChange
@@ -123,8 +123,7 @@ class TaskRepository(private val taskDao: TaskDao, private val templateDao: Temp
         val newTask = Task(
             title = template.title,
             category = template.category,
-            threatLevel = template.threatLevel,
-            xpValue = template.effectiveXpValue
+            threatLevel = template.threatLevel
         )
         taskDao.insertTask(newTask)
     }
@@ -143,7 +142,7 @@ class TaskRepository(private val taskDao: TaskDao, private val templateDao: Temp
             tasks.groupBy { 
                 Instant.ofEpochMilli(it.completedAt!!).atZone(ZoneId.systemDefault()).toLocalDate()
             }.map { (date, tasksOnDate) ->
-                DailyProductivity(date, tasksOnDate.sumOf { it.effectiveXpValue })
+                DailyProductivity(date, tasksOnDate.sumOf { it.xpValue })
             }.sortedBy { it.date }
         }
 
