@@ -12,9 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.R
 import com.example.thealfred.data.Task
 import com.example.thealfred.ui.theme.AlertRed
 import com.example.thealfred.ui.theme.WarningOrange
@@ -26,16 +28,16 @@ private fun formatDueDate(dueDate: Long): Pair<String, Color> {
     val remainingTime = dueDate - currentTime
 
     if (remainingTime < 0) {
-        return "OVERDUE" to AlertRed
+        return stringResource(id = R.string.overdue) to AlertRed
     }
 
     val days = TimeUnit.MILLISECONDS.toDays(remainingTime)
     val hours = TimeUnit.MILLISECONDS.toHours(remainingTime) % 24
 
     return when {
-        days > 1 -> "$days days left" to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        days == 1L -> "1 day left" to WarningOrange
-        else -> "$hours hours left" to WarningOrange
+        days > 1 -> stringResource(id = R.string.days_left_plural, days.toInt()) to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        days == 1L -> stringResource(id = R.string.days_left_singular) to WarningOrange
+        else -> stringResource(id = R.string.hours_left, hours.toInt()) to WarningOrange
     }
 }
 
@@ -46,7 +48,7 @@ fun TaskRow(task: Task, onToggleComplete: (Task) -> Unit) {
     ) {
         Checkbox(
             checked = task.isCompleted,
-            onCheckedChange = { onToggleComplete(task) }, // Убрана защита от двойного клика
+            onCheckedChange = { onToggleComplete(task) },
             colors = CheckboxDefaults.colors(
                 checkedColor = MaterialTheme.colorScheme.primary,
                 uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)

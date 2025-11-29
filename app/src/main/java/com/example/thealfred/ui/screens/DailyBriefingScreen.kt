@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,12 +18,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.R
 import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.TaskRow
@@ -38,9 +40,9 @@ const val DEBOUNCE_INTERVAL_MS = 1000L
 fun DailyBriefingScreen(
     viewModel: MissionViewModel,
     onNavigateToCompleted: () -> Unit,
-    onNavigateToJournal: () -> Unit,
     onNavigateToTemplates: () -> Unit,
-    onNavigateToAddTask: () -> Unit
+    onNavigateToAddTask: () -> Unit,
+    onNavigateToSettings: () -> Unit // Добавлен коллбэк для настроек
 ) {
     val activeTasks by viewModel.activeTasksSortedByPriority.collectAsState()
     val userProgress by viewModel.userProgress.collectAsState()
@@ -61,13 +63,13 @@ fun DailyBriefingScreen(
                 title = {
                     val textStyleWithShadow = LocalTextStyle.current.copy(
                         shadow = Shadow(
-                            color = Color.White.copy(alpha = 0.8f), // Белая тень (свечение)
-                            offset = Offset(0f, 0f),             // Без смещения, для равномерного свечения
-                            blurRadius = 16f                     // Сильное размытие для эффекта свечения
+                            color = Color.White.copy(alpha = 0.8f),
+                            offset = Offset(0f, 0f),
+                            blurRadius = 16f
                         )
                     )
                     Text(
-                        text = "DAILY BRIEFING",
+                        text = stringResource(id = R.string.daily_briefing),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
@@ -75,11 +77,11 @@ fun DailyBriefingScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { debouncedAction { onNavigateToJournal() } }) {
-                        Icon(Icons.Filled.Book, contentDescription = "Journal")
-                    }
                     IconButton(onClick = { debouncedAction { onNavigateToTemplates() } }) {
-                        Icon(Icons.Default.Build, contentDescription = "Planning Tools")
+                        Icon(Icons.Default.Build, contentDescription = stringResource(id = R.string.planning_tools))
+                    }
+                    IconButton(onClick = { debouncedAction { onNavigateToSettings() } }) {
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(id = R.string.settings))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -89,7 +91,7 @@ fun DailyBriefingScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { debouncedAction { onNavigateToAddTask() } }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Task")
+                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_task))
             }
         },
         containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
@@ -109,7 +111,9 @@ fun DailyBriefingScreen(
             }
 
             item {
-                VigilanteRankDisplay(progress = userProgress)
+                userProgress?.let { progress ->
+                    VigilanteRankDisplay(progress = progress)
+                }
             }
 
             val overdueTasks = activeTasks.filter { TaskUtils.isOverdue(it) }
@@ -132,7 +136,7 @@ fun DailyBriefingScreen(
 
                     Card(modifier = Modifier.fillMaxWidth().alpha(alpha)) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("⚠ CAVE ALERT", color = AlertRed, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(id = R.string.cave_alert), color = AlertRed, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             overdueTasks.forEach { task ->
                                 TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
                             }
@@ -145,7 +149,7 @@ fun DailyBriefingScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("CRITICAL THREATS", color = CriticalThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(id = R.string.critical_threats), color = CriticalThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             criticalTasks.forEach { task ->
                                 TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
                             }
@@ -158,7 +162,7 @@ fun DailyBriefingScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("MEDIUM THREATS", color = MediumThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(id = R.string.medium_threats), color = MediumThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             mediumTasks.forEach { task ->
                                 TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
                             }
@@ -171,7 +175,7 @@ fun DailyBriefingScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("MINOR THREATS", color = MinorThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(id = R.string.minor_threats), color = MinorThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             minorTasks.forEach { task ->
                                 TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
                             }
@@ -186,7 +190,7 @@ fun DailyBriefingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-                    Text("COMPLETED THREATS", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(stringResource(id = R.string.completed_threats_title), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }

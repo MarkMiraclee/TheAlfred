@@ -1,3 +1,83 @@
 <resources>
-    <string name="app_name">TheAlfred</string>
+    <string name="app_name">The Alfred</string>
+
+    <!-- Общие -->
+    <string name="back">Back</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Daily Briefing Screen -->
+    <string name="daily_briefing">DAILY BRIEFING</string>
+    <string name="planning_tools">Planning Tools</string>
+    <string name="settings">Settings</string>
+    <string name="add_task">Add Task</string>
+    <string name="completed_threats_title">COMPLETED THREATS</string>
+    <string name="cave_alert">⚠ CAVE ALERT</string>
+    <string name="critical_threats">CRITICAL THREATS</string>
+    <string name="medium_threats">MEDIUM THREATS</string>
+    <string name="minor_threats">MINOR THREATS</string>
+
+    <!-- Task Row & Due Dates -->
+    <string name="overdue">OVERDUE</string>
+    <string name="days_left_plural">%d days left</string>
+    <string name="days_left_singular">1 day left</string>
+    <string name="hours_left">%d hours left</string>
+
+    <!-- Add Task Screen -->
+    <string name="new_threat_title">NEW THREAT</string>
+    <string name="threat_title_label">Threat Title</string>
+    <string name="operational_protocol_label">Operational Protocol</string>
+    <string name="threat_level_label">Threat Level</string>
+    <string name="set_deadline_button">SET DEADLINE</string>
+    <string name="deadline_format">Deadline: %s</string>
+    <string name="add_threat_button">ADD THREAT</string>
+
+    <!-- Templates Screen -->
+    <string name="templates_title">PLANNING TOOL: TEMPLATES</string>
+    <string name="add_template_button">Add Template</string>
+    <string name="no_templates_message">No templates created yet.</string>
+    <string name="category_label">Category: %s</string>
+    <string name="threat_label">Threat: %s</string>
+    <string name="create_task_from_template_desc">Create Task from Template</string>
+    <string name="delete_template_desc">Delete Template</string>
+
+    <!-- Add Template Screen -->
+    <string name="new_template_title">NEW TEMPLATE</string>
+    <string name="template_title_label">Template Title</string>
+    <string name="save_template_button">SAVE TEMPLATE</string>
+
+    <!-- Batcave Log Screen -->
+    <string name="batcave_log_title">BATCAVE LOG</string>
+    <string name="crime_reduction_kpi">CRIME REDUCTION (XP/DAY)</string>
+    <string name="threats_neutralized_kpi">Critical Threats Neutralized (Weekly)</string>
+    <string name="time_per_protocol_kpi">TIME PER PROTOCOL</string>
+    
+    <!-- Readiness Check Screen -->
+    <string name="readiness_check_title">READINESS CHECK</string>
+    <string name="readiness_check_desc">The day demands your full commitment. Confirm you are ready for the mission.</string>
+    <string name="ritual_complete_button">RITUAL COMPLETE (50 PUSH-UPS)</string>
+    
+    <!-- All Tasks Screen -->
+    <string name="all_threats_title">ALL THREATS</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">SETTINGS</string>
+    <string name="settings_language">Language</string>
+
+    <!-- Task Categories -->
+    <string name="task_category_operational">Operational Missions</string>
+    <string name="task_category_physical">Physical Conditioning</string>
+    <string name="task_category_intelligence">Intelligence &amp; Strategy</string>
+    <string name="task_category_wayne">Wayne Persona Maintenance</string>
+
+    <!-- Threat Levels -->
+    <string name="threat_level_critical">Critical Threat</string>
+    <string name="threat_level_medium">Medium Threat</string>
+    <string name="threat_level_minor">Minor Threat</string>
+
+    <!-- Vigilante Rank Display -->
+    <string name="current_protocol">CURRENT PROTOCOL:</string>
+    <string name="vigilance_points">Vigilance Points: %d</string>
+    <string name="max_rank">MAX</string>
+
 </resources>

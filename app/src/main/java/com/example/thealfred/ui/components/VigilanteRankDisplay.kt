@@ -7,38 +7,42 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.R
 import com.example.thealfred.data.Progress
+import com.example.thealfred.data.TaskCategory
 import com.example.thealfred.ui.theme.*
 import com.example.thealfred.ui.utils.RankUtils
+import com.example.thealfred.ui.utils.translate
 
 @Composable
 fun VigilanteRankDisplay(progress: Progress) {
     var isExpanded by remember { mutableStateOf(false) }
-    val nextRankThreshold = RankUtils.getNextRankThreshold(progress.currentRank)
+    val currentRank = progress.currentRank ?: return // Если ранг еще не загружен, ничего не показываем
+    val nextRankThreshold = RankUtils.getNextRankThreshold(currentRank)
     val progressPercentage = RankUtils.getProgressToNextRank(progress)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .clickable { isExpanded = !isExpanded }, // Делаем карточку кликабельной
+            .clickable { isExpanded = !isExpanded },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // --- Основная информация о ранге ---
             Text(
-                text = "CURRENT PROTOCOL:",
+                text = stringResource(id = R.string.current_protocol),
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = progress.currentRank,
+                text = currentRank,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -57,44 +61,43 @@ fun VigilanteRankDisplay(progress: Progress) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Vigilance Points: ${progress.totalVigilancePoints}",
+                    text = stringResource(id = R.string.vigilance_points, progress.totalVigilancePoints),
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 Text(
-                    text = if (nextRankThreshold < Int.MAX_VALUE) "$nextRankThreshold XP" else "MAX",
+                    text = if (nextRankThreshold < Int.MAX_VALUE) "$nextRankThreshold XP" else stringResource(id = R.string.max_rank),
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
 
-            // --- Раскрывающаяся часть с категориями ---
             AnimatedVisibility(visible = isExpanded) {
                 Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Divider()
                     Spacer(modifier = Modifier.height(4.dp))
                     CategoryProgressCard(
-                        title = "OPERATIONAL MISSIONS",
+                        title = translate(TaskCategory.OPERATIONAL_MISSIONS),
                         currentXp = progress.operationalMissionsXp,
-                        totalXp = progress.totalVigilancePoints, // Добавлено
+                        totalXp = progress.totalVigilancePoints, 
                         color = OperationalBlue
                     )
                     CategoryProgressCard(
-                        title = "PHYSICAL CONDITIONING",
+                        title = translate(TaskCategory.PHYSICAL_CONDITIONING),
                         currentXp = progress.physicalConditioningXp,
-                        totalXp = progress.totalVigilancePoints, // Добавлено
+                        totalXp = progress.totalVigilancePoints, 
                         color = ConditioningGreen
                     )
                     CategoryProgressCard(
-                        title = "INTELLIGENCE & STRATEGY",
+                        title = translate(TaskCategory.INTELLIGENCE_AND_STRATEGY),
                         currentXp = progress.intelligenceAndStrategyXp,
-                        totalXp = progress.totalVigilancePoints, // Добавлено
+                        totalXp = progress.totalVigilancePoints, 
                         color = IntelligenceYellow
                     )
                     CategoryProgressCard(
-                        title = "WAYNE PERSONA MAINTENANCE",
+                        title = translate(TaskCategory.WAYNE_PERSONA_MAINTENANCE),
                         currentXp = progress.waynePersonaMaintenanceXp,
-                        totalXp = progress.totalVigilancePoints, // Добавлено
+                        totalXp = progress.totalVigilancePoints, 
                         color = PersonaPurple
                     )
                 }

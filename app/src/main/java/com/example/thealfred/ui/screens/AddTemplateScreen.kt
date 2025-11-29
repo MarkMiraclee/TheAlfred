@@ -7,12 +7,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.thealfred.R
 import com.example.thealfred.data.TaskCategory
 import com.example.thealfred.data.Template
 import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
+import com.example.thealfred.ui.utils.translate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,10 +37,10 @@ fun AddTemplateScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("NEW TEMPLATE", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.new_template_title), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -45,7 +48,7 @@ fun AddTemplateScreen(
                 )
             )
         },
-        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -55,15 +58,15 @@ fun AddTemplateScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val textFieldColors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
-                unfocusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
+                focusedContainerColor = Color.Black.copy(alpha = 0.5f),
+                unfocusedContainerColor = Color.Black.copy(alpha = 0.5f),
                 disabledContainerColor = Color.Black.copy(alpha = 0.5f),
             )
 
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Template Title") },
+                label = { Text(stringResource(id = R.string.template_title_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = textFieldColors
@@ -90,7 +93,7 @@ fun AddTemplateScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = title.isNotBlank() && !templateAdded
             ) {
-                Text("SAVE TEMPLATE")
+                Text(stringResource(id = R.string.save_template_button))
             }
         }
     }

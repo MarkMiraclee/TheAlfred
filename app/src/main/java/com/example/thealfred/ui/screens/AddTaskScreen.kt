@@ -7,12 +7,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.thealfred.R
 import com.example.thealfred.data.Task
 import com.example.thealfred.data.TaskCategory
 import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
+import com.example.thealfred.ui.utils.translate
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -38,10 +41,10 @@ fun AddTaskScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("NEW THREAT", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.new_threat_title), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -49,7 +52,7 @@ fun AddTaskScreen(
                 )
             )
         },
-        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
+        containerColor = Color.Transparent
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -59,15 +62,15 @@ fun AddTaskScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             val textFieldColors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
-                unfocusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
+                focusedContainerColor = Color.Black.copy(alpha = 0.5f),
+                unfocusedContainerColor = Color.Black.copy(alpha = 0.5f),
                 disabledContainerColor = Color.Black.copy(alpha = 0.5f),
             )
 
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Threat Title") },
+                label = { Text(stringResource(id = R.string.threat_title_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = textFieldColors
@@ -82,8 +85,8 @@ fun AddTaskScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val buttonText = selectedDueDate?.let {
-                    "Deadline: ${SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(it)}"
-                } ?: "SET DEADLINE"
+                    stringResource(id = R.string.deadline_format, SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(it))
+                } ?: stringResource(id = R.string.set_deadline_button)
                 Text(buttonText)
             }
 
@@ -101,12 +104,12 @@ fun AddTaskScreen(
                             },
                             enabled = confirmEnabled
                         ) {
-                            Text("OK")
+                            Text(stringResource(id = R.string.ok))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDatePicker = false }) {
-                            Text("Cancel")
+                            Text(stringResource(id = R.string.cancel))
                         }
                     }
                 ) {
@@ -132,7 +135,7 @@ fun AddTaskScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = title.isNotBlank() && !taskAdded
             ) {
-                Text("ADD THREAT")
+                Text(stringResource(id = R.string.add_threat_button))
             }
         }
     }
@@ -145,17 +148,17 @@ fun CategorySelector(selectedCategory: TaskCategory, onCategorySelected: (TaskCa
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
-            value = selectedCategory.name,
+            value = translate(category = selectedCategory),
             onValueChange = {},
             readOnly = true,
-            label = { Text("Operational Protocol") },
+            label = { Text(stringResource(id = R.string.operational_protocol_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
             colors = colors
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             TaskCategory.values().forEach { category ->
-                DropdownMenuItem(text = { Text(category.name) }, onClick = { 
+                DropdownMenuItem(text = { Text(translate(category = category)) }, onClick = { 
                     onCategorySelected(category)
                     expanded = false
                 })
@@ -171,17 +174,17 @@ fun ThreatLevelSelector(selectedThreatLevel: ThreatLevel, onThreatSelected: (Thr
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         OutlinedTextField(
-            value = selectedThreatLevel.name,
+            value = translate(threatLevel = selectedThreatLevel),
             onValueChange = {},
             readOnly = true,
-            label = { Text("Threat Level") },
+            label = { Text(stringResource(id = R.string.threat_level_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
             colors = colors
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             ThreatLevel.values().forEach { threatLevel ->
-                DropdownMenuItem(text = { Text(threatLevel.name) }, onClick = { 
+                DropdownMenuItem(text = { Text(translate(threatLevel = threatLevel)) }, onClick = { 
                     onThreatSelected(threatLevel)
                     expanded = false
                 })

@@ -17,11 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.R
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.ProductivityChart
+import com.example.thealfred.ui.utils.translate
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,10 +46,10 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("BATCAVE LOG", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.batcave_log_title), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -54,7 +57,7 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                 )
             )
         },
-        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
+        containerColor = Color.Transparent
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -62,7 +65,6 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Карточка с графиком
             if (weeklyProductivity.isNotEmpty()) {
                 item {
                     Card(
@@ -70,7 +72,7 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "CRIME REDUCTION (XP/DAY)",
+                                text = stringResource(id = R.string.crime_reduction_kpi),
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold
@@ -81,7 +83,6 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                 }
             }
 
-            // Карточка с KPI 1
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -91,7 +92,7 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Critical Threats Neutralized (Weekly)",
+                            text = stringResource(id = R.string.threats_neutralized_kpi),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -106,7 +107,6 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                 }
             }
 
-            // Карточка с KPI 2
             if (timeSpentPerCategory.isNotEmpty()) {
                 item {
                     Card(
@@ -114,7 +114,7 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "TIME PER PROTOCOL",
+                                text = stringResource(id = R.string.time_per_protocol_kpi),
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold
@@ -127,7 +127,7 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = it.category.name,
+                                        text = translate(category = it.category),
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                         fontSize = 14.sp
                                     )
@@ -147,7 +147,6 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     }
 }
 
-// Вспомогательная функция для форматирования времени
 private fun formatDuration(millis: Long): String {
     val hours = TimeUnit.MILLISECONDS.toHours(millis)
     val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60

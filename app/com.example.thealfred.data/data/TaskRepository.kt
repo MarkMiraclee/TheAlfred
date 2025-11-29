@@ -10,7 +10,7 @@ class TaskRepository(private val taskDao: TaskDao, private val templateDao: Temp
 
     val allTasks: Flow<List<Task>> = taskDao.getAllTasks()
     val activeTasks: Flow<List<Task>> = taskDao.getAllTasks().map { tasks -> tasks.filter { !it.isCompleted } }
-    val userProgress: Flow<Progress> = taskDao.getProgress().map { it ?: Progress() }
+    val userProgress: Flow<Progress?> = taskDao.getProgress()
     val showReadinessCheck: Flow<Boolean> = allTasks.map { tasks ->
         val today = Calendar.getInstance()
         val startOfToday = today.apply {

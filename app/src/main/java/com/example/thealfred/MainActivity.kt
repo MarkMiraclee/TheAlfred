@@ -22,12 +22,17 @@ import com.example.thealfred.data.AppDatabase
 import com.example.thealfred.data.TaskRepository
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.MissionViewModelFactory
+import com.example.thealfred.ui.ReadinessCheckState
 import com.example.thealfred.ui.screens.*
 import com.example.thealfred.ui.theme.TheAlfredTheme
+import com.example.thealfred.ui.utils.LocaleHelper
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Загружаем язык при старте
+        LocaleHelper.loadLocale(this)
 
         val database = AppDatabase.getDatabase(applicationContext)
         val repository = TaskRepository(database.taskDao(), database.templateDao())
@@ -37,8 +42,8 @@ class MainActivity : ComponentActivity() {
             val viewModel: MissionViewModel = viewModel(factory = factory)
             val userProgress by viewModel.userProgress.collectAsState()
 
-            TheAlfredTheme(currentRank = userProgress.currentRank) {
-                // Surface больше не основной контейнер, он будет внутри AppContent
+            // Pass the rank to the theme, defaulting to "D"
+            TheAlfredTheme(currentRank = userProgress?.currentRank ?: "D") {
                 AppContent(viewModel = viewModel)
             }
         }
@@ -48,82 +53,61 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppContent(viewModel: MissionViewModel) {
     val userProgress by viewModel.userProgress.collectAsState()
-    val showReadinessCheck by viewModel.showReadinessCheck.collectAsState()
-
-    // Определяем фон в зависимости от ранга
-    val backgroundRes = when (userProgress.currentRank) {
-        "D" -> R.drawable.rank_d_background
-        "C" -> R.drawable.rank_c_background
-        "B" -> R.drawable.rank_b_background
-        "A" -> R.drawable.rank_a_background
-        "S" -> R.drawable.rank_s_background
-        else -> 0 // 0 или null, если фон не нужен
-    }
+    val readinessState by viewModel.readinessCheckState.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Устанавливаем фоновое изображение, если оно есть
-        if (backgroundRes != 0) {
+        // First, check if userProgress is loaded.
+        if (userProgress == null) {
+            // While loading, show a neutral background
+            Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {}
+        } else {
+            // Once loaded, determine and show the rank-based background
+            val backgroundRes = when (userProgress!!.currentRank) {
+                "C" -> R.drawable.rank_c_background
+                "B" -> R.drawable.rank_b_background
+                "A" -> R.drawable.rank_a_background
+                "S" -> R.drawable.rank_s_background
+                else -> R.drawable.rank_d_background
+            }
             Image(
                 painter = painterResource(id = backgroundRes),
                 contentDescription = "Background",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop // Растягиваем с обрезкой
+                contentScale = ContentScale.Crop
             )
-        }
 
-        // Основной контент приложения поверх фона
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            // Делаем Surface прозрачным, чтобы фон был виден
-            color = if (backgroundRes != 0) Color.Transparent else MaterialTheme.colorScheme.background
-        ) {
-            if (showReadinessCheck) {
-                ReadinessCheckScreen(onRitualCompleted = { viewModel.completeRitual() })
-            } else {
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = "daily_briefing",
-                ) {
-                    composable("daily_briefing") {
-                        DailyBriefingScreen(
-                            viewModel = viewModel,
-                            onNavigateToCompleted = { navController.navigate("completed_tasks") },
-                            onNavigateToJournal = { navController.navigate("batcave_log") },
-                            onNavigateToTemplates = { navController.navigate("templates") },
-                            onNavigateToAddTask = { navController.navigate("add_task") }
-                        )
+            // Then, show the actual content on a transparent surface
+            Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
+                when (readinessState) {
+                    is ReadinessCheckState.Loading -> {
+                        // While waiting for the ritual decision, show an empty screen (the background is already there)
+                        Box(modifier = Modifier.fillMaxSize())
                     }
-                    composable("add_task") {
-                        AddTaskScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
+                    is ReadinessCheckState.Show -> {
+                        ReadinessCheckScreen(onRitualCompleted = { viewModel.completeRitual() })
                     }
-                    composable("batcave_log") {
-                        BatcaveLogScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("completed_tasks") {
-                        CompletedTasksScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("templates") {
-                        TemplatesScreen(
-                            viewModel = viewModel,
-                            onNavigateToAddTask = { navController.navigate("add_template") },
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("add_template") {
-                        AddTemplateScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
+                    is ReadinessCheckState.Hide -> {
+                        val navController = rememberNavController()
+                        NavHost(
+                            navController = navController,
+                            startDestination = "daily_briefing",
+                        ) {
+                            composable("daily_briefing") {
+                                DailyBriefingScreen(
+                                    viewModel = viewModel,
+                                    onNavigateToCompleted = { navController.navigate("completed_tasks") },
+                                    onNavigateToTemplates = { navController.navigate("templates") },
+                                    onNavigateToAddTask = { navController.navigate("add_task") },
+                                    onNavigateToSettings = { navController.navigate("settings") }
+                                )
+                            }
+                            composable("add_task") { AddTaskScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() }) }
+                            composable("batcave_log") { BatcaveLogScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() }) }
+                            composable("completed_tasks") { CompletedTasksScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() }) }
+                            composable("templates") { TemplatesScreen(viewModel = viewModel, onNavigateToAddTask = { navController.navigate("add_template") }, onNavigateBack = { navController.popBackStack() }) }
+                            composable("add_template") { AddTemplateScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() }) }
+                            composable("settings") { SettingsScreen(onNavigateBack = { navController.popBackStack() }) }
+                        }
                     }
                 }
             }

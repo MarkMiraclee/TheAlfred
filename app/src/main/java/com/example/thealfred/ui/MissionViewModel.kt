@@ -12,18 +12,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+sealed class ReadinessCheckState {
+    object Loading : ReadinessCheckState()
+    object Show : ReadinessCheckState()
+    object Hide : ReadinessCheckState()
+}
+
 class MissionViewModel(private val repository: TaskRepository, application: Application) : AndroidViewModel(application) {
 
     private val _dailyQuote = MutableStateFlow("")
     val dailyQuote: StateFlow<String> = _dailyQuote.asStateFlow()
 
-    private val _showReadinessCheck = MutableStateFlow(true)
-    val showReadinessCheck: StateFlow<Boolean> = _showReadinessCheck.asStateFlow()
+    private val _readinessCheckState = MutableStateFlow<ReadinessCheckState>(ReadinessCheckState.Loading)
+    val readinessCheckState: StateFlow<ReadinessCheckState> = _readinessCheckState.asStateFlow()
 
     init {
         viewModelScope.launch {
             _dailyQuote.value = DailyQuoteManager.getQuote(getApplication<Application>().applicationContext)
-            _showReadinessCheck.value = !repository.isRitualCompletedToday()
+            _readinessCheckState.value = if (repository.isRitualCompletedToday()) ReadinessCheckState.Hide else ReadinessCheckState.Show
         }
     }
 
@@ -33,7 +39,7 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
     val overdueTasks: StateFlow<List<Task>> = repository.overdueTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val completedTasks: StateFlow<List<Task>> = repository.completedTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val activeTasksSortedByPriority: StateFlow<List<Task>> = repository.activeTasksSortedByPriority.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val userProgress: StateFlow<Progress> = repository.userProgress.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Progress())
+    val userProgress: StateFlow<Progress?> = repository.userProgress.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // --- Шаблоны ---
     val allTemplates: StateFlow<List<Template>> = repository.allTemplates.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -58,7 +64,7 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
     // ОБРАБОТЧИКИ СОБЫТИЙ
     fun toggleTaskStatus(task: Task) {
         viewModelScope.launch {
-            val currentProgress = userProgress.value
+            val currentProgress = userProgress.value ?: return@launch
             repository.updateTaskStatus(
                 task = task,
                 isCompleted = !task.isCompleted,
@@ -75,9 +81,9 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
 
     fun completeRitual() {
         viewModelScope.launch {
-            val currentProgress = userProgress.value
+            val currentProgress = userProgress.value ?: return@launch
             repository.completeMorningRitual(currentProgress)
-            _showReadinessCheck.value = false
+            _readinessCheckState.value = ReadinessCheckState.Hide
         }
     }
 }

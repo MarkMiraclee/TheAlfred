@@ -12,8 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.thealfred.R
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.TaskCard
 
@@ -34,10 +36,10 @@ fun AllTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("ALL THREATS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.all_threats_title), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

@@ -67,7 +67,7 @@ private val RankSColorScheme = DarkColorScheme.copy(
 
 @Composable
 fun TheAlfredTheme(
-    currentRank: String = "D", // По умолчанию ранг D
+    currentRank: String? = "D", // Ранг может быть null
     content: @Composable () -> Unit
 ) {
     // Логика выбора цветовой схемы в зависимости от ранга

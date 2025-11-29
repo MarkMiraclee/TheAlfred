@@ -1,6 +1,5 @@
 package com.example.thealfred.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,11 +13,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.R
 import com.example.thealfred.data.Template
 import com.example.thealfred.ui.MissionViewModel
+import com.example.thealfred.ui.utils.translate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,24 +39,24 @@ fun TemplatesScreen(viewModel: MissionViewModel, onNavigateToAddTask: () -> Unit
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("PLANNING TOOL: TEMPLATES") },
+                title = { Text(stringResource(id = R.string.templates_title)) },
                 navigationIcon = {
                     IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { debouncedAction { onNavigateToAddTask() } }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Template")
+                Icon(Icons.Default.Add, contentDescription = stringResource(id = R.string.add_template_button))
             }
         },
-        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
+        containerColor = Color.Transparent
     ) { paddingValues ->
         if (templates.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("No templates created yet.", fontSize = 18.sp)
+                Text(stringResource(id = R.string.no_templates_message), fontSize = 18.sp)
             }
         } else {
             LazyColumn(
@@ -90,21 +92,19 @@ private fun TemplateCard(template: Template, viewModel: MissionViewModel, onNavi
             Column(modifier = Modifier.weight(1f)) {
                 Text(template.title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Category: ${template.category.name}", fontSize = 14.sp)
-                Text("Threat: ${template.threatLevel.name}", fontSize = 14.sp)
+                Text(stringResource(id = R.string.category_label, translate(category = template.category)), fontSize = 14.sp)
+                Text(stringResource(id = R.string.threat_label, translate(threatLevel = template.threatLevel)), fontSize = 14.sp)
             }
-            // Кнопка "Создать задачу"
             IconButton(onClick = { 
                 debouncedAction {
                     viewModel.createTaskFromTemplate(template)
                     onNavigateBack()
                 } 
             }) {
-                Icon(Icons.Default.PlayArrow, contentDescription = "Create Task from Template", tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(id = R.string.create_task_from_template_desc), tint = MaterialTheme.colorScheme.primary)
             }
-            // Кнопка "Удалить"
             IconButton(onClick = { debouncedAction { viewModel.deleteTemplate(template.id) } }) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Template", tint = Color.Gray)
+                Icon(Icons.Default.Delete, contentDescription = stringResource(id = R.string.delete_template_desc), tint = Color.Gray)
             }
         }
     }

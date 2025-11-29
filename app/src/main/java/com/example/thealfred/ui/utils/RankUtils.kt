@@ -12,8 +12,8 @@ object RankUtils {
         "S" to Int.MAX_VALUE // S-ранг - максимальный
     )
 
-    fun getNextRankThreshold(currentRank: String): Int {
-        return rankThresholds[currentRank] ?: Int.MAX_VALUE
+    fun getNextRankThreshold(currentRank: String?): Int {
+        return if (currentRank == null) 0 else rankThresholds[currentRank] ?: Int.MAX_VALUE
     }
 
     fun getProgressToNextRank(progress: Progress): Float {

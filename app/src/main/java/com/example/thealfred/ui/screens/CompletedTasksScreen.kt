@@ -10,15 +10,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.R
 import com.example.thealfred.data.Task
 import com.example.thealfred.data.TaskCategory
 import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.CategoryProgressCard
 import com.example.thealfred.ui.theme.*
+import com.example.thealfred.ui.utils.translate
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.Icons
@@ -69,16 +72,16 @@ fun CompletedTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("COMPLETED THREATS", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(id = R.string.completed_threats_title), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(id = R.string.back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
+        containerColor = Color.Transparent
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -133,17 +136,15 @@ private fun ExpandableCategoryGroup(
     val categoryXpOnDay = tasks.sumOf { it.xpValue }
 
     Column(modifier = Modifier.padding(bottom = 12.dp)) {
-        // Кликабельный заголовок категории
         Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
             CategoryProgressCard(
-                title = category.name.replace('_', ' '),
+                title = translate(category = category),
                 currentXp = categoryXpOnDay,
                 totalXp = totalXpOnDay,
                 color = getCategoryColor(category)
             )
         }
 
-        // Раскрывающийся список, сгруппированный по уровню угрозы
         AnimatedVisibility(visible = isExpanded) {
             Column(modifier = Modifier.padding(start = 16.dp, top = 12.dp)) {
                 val tasksByThreat = tasks.groupBy { it.threatLevel }
@@ -151,16 +152,14 @@ private fun ExpandableCategoryGroup(
 
                 threatLevelsOrder.forEach { threatLevel ->
                     tasksByThreat[threatLevel]?.let { tasksInThreat ->
-                        // ЗАГОЛОВОК УРОВНЯ УГРОЗЫ
                         Text(
-                            text = threatLevel.name.replace("_", " "),
+                            text = translate(threatLevel = threatLevel),
                             color = getThreatColor(threatLevel),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
                         )
                         
-                        // ЕДИНЫЙ СПИСОК ЗАДАЧ ДЛЯ ЭТОГО УРОВНЯ
                         tasksInThreat.forEach { task ->
                             CompletedTaskRow(task = task)
                         }
@@ -171,7 +170,6 @@ private fun ExpandableCategoryGroup(
     }
 }
 
-// Ультра-компактная строка, как вы и просили
 @Composable
 private fun CompletedTaskRow(task: Task) {
     Row(
@@ -192,5 +190,5 @@ private fun CompletedTaskRow(task: Task) {
             fontSize = 14.sp
         )
     }
-    Divider(color = Color.Gray.copy(alpha = 0.2f)) // Разделитель между задачами
+    Divider(color = Color.Gray.copy(alpha = 0.2f))
 }
