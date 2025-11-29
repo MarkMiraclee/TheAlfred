@@ -9,7 +9,7 @@ import androidx.room.TypeConverters
 // 1. Аннотация Database: Указываем все Entity, версию и используемые TypeConverters
 @Database(
     entities = [Task::class, Progress::class, Template::class], // Наши сущности (Entity)
-    version = 2,              // Версия базы данных
+    version = 3,              // Увеличиваем версию базы данных
     exportSchema = false      // Не экспортировать схему в файл
 )
 @TypeConverters(Converters::class)

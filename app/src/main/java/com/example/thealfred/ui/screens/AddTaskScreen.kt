@@ -48,7 +48,8 @@ fun AddTaskScreen(
                     containerColor = Color.Transparent
                 )
             )
-        }
+        },
+        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -57,18 +58,24 @@ fun AddTaskScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Поля ввода...
+            val textFieldColors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
+                unfocusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
+                disabledContainerColor = Color.Black.copy(alpha = 0.5f),
+            )
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Threat Title") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
 
-            CategorySelector(selectedCategory = selectedCategory, onCategorySelected = { selectedCategory = it })
+            CategorySelector(selectedCategory = selectedCategory, onCategorySelected = { selectedCategory = it }, colors = textFieldColors)
 
-            ThreatLevelSelector(selectedThreatLevel = selectedThreatLevel, onThreatSelected = { selectedThreatLevel = it })
+            ThreatLevelSelector(selectedThreatLevel = selectedThreatLevel, onThreatSelected = { selectedThreatLevel = it }, colors = textFieldColors)
 
             OutlinedButton(
                 onClick = { showDatePicker = true },
@@ -133,7 +140,7 @@ fun AddTaskScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategorySelector(selectedCategory: TaskCategory, onCategorySelected: (TaskCategory) -> Unit) {
+fun CategorySelector(selectedCategory: TaskCategory, onCategorySelected: (TaskCategory) -> Unit, colors: TextFieldColors) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
@@ -143,7 +150,8 @@ fun CategorySelector(selectedCategory: TaskCategory, onCategorySelected: (TaskCa
             readOnly = true,
             label = { Text("Operational Protocol") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            colors = colors
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             TaskCategory.values().forEach { category ->
@@ -158,7 +166,7 @@ fun CategorySelector(selectedCategory: TaskCategory, onCategorySelected: (TaskCa
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThreatLevelSelector(selectedThreatLevel: ThreatLevel, onThreatSelected: (ThreatLevel) -> Unit) {
+fun ThreatLevelSelector(selectedThreatLevel: ThreatLevel, onThreatSelected: (ThreatLevel) -> Unit, colors: TextFieldColors) {
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
@@ -168,7 +176,8 @@ fun ThreatLevelSelector(selectedThreatLevel: ThreatLevel, onThreatSelected: (Thr
             readOnly = true,
             label = { Text("Threat Level") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            colors = colors
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             ThreatLevel.values().forEach { threatLevel ->

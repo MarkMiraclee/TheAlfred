@@ -53,7 +53,8 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                     containerColor = Color.Transparent
                 )
             )
-        }
+        },
+        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),

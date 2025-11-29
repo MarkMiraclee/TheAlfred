@@ -15,7 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,7 +58,22 @@ fun DailyBriefingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("DAILY BRIEFING", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
+                title = {
+                    val textStyleWithShadow = LocalTextStyle.current.copy(
+                        shadow = Shadow(
+                            color = Color.White.copy(alpha = 0.8f), // Белая тень (свечение)
+                            offset = Offset(0f, 0f),             // Без смещения, для равномерного свечения
+                            blurRadius = 16f                     // Сильное размытие для эффекта свечения
+                        )
+                    )
+                    Text(
+                        text = "DAILY BRIEFING",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp,
+                        style = textStyleWithShadow
+                    )
+                },
                 actions = {
                     IconButton(onClick = { debouncedAction { onNavigateToJournal() } }) {
                         Icon(Icons.Filled.Book, contentDescription = "Journal")
@@ -74,7 +91,8 @@ fun DailyBriefingScreen(
             FloatingActionButton(onClick = { debouncedAction { onNavigateToAddTask() } }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
             }
-        }
+        },
+        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -192,7 +210,8 @@ private fun QuoteOfTheDay(quote: String) {
                 fontFamily = FontFamily.Cursive,
                 fontSize = 22.sp,
                 maxLines = 4,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = Color.White // Принудительно ставим белый цвет
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

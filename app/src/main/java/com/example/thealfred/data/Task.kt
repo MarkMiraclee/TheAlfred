@@ -1,6 +1,7 @@
 package com.example.thealfred.data
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 
 // Основная модель данных для задачи
@@ -18,9 +19,6 @@ data class Task(
     // Используем Enum
     val threatLevel: ThreatLevel,
 
-    // Значение XP (хранится в БД, но по умолчанию берется из threatLevel)
-    val xpValue: Int = 0,
-
     val isCompleted: Boolean = false,
 
     val createdAt: Long = System.currentTimeMillis(),
@@ -31,7 +29,8 @@ data class Task(
     // Дата завершения (для аналитики)
     val completedAt: Long? = null
 ) {
-    // Вычисляемое свойство для получения реального значения XP
-    val effectiveXpValue: Int
-        get() = if (xpValue > 0) xpValue else threatLevel.xpValue
+    // Теперь XP всегда вычисляются на основе уровня угрозы
+    val xpValue: Int
+        @Ignore // Говорим Room не пытаться сохранить это поле в БД
+        get() = threatLevel.xpValue
 }

@@ -63,7 +63,7 @@ fun TaskCard(
                 Chip(label = task.threatLevel.name.replace("_", " "), color = getThreatColor(task.threatLevel))
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "+${task.effectiveXpValue} XP",
+                    text = "+${task.xpValue} XP",
                     color = getThreatColor(task.threatLevel),
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp

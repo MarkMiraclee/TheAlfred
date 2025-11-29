@@ -44,7 +44,8 @@ fun AddTemplateScreen(
                     containerColor = Color.Transparent
                 )
             )
-        }
+        },
+        containerColor = Color.Transparent // Делаем фон Scaffold прозрачным
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -53,17 +54,24 @@ fun AddTemplateScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val textFieldColors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
+                unfocusedContainerColor = Color.Black.copy(alpha = 0.5f), // Увеличена прозрачность до 50%
+                disabledContainerColor = Color.Black.copy(alpha = 0.5f),
+            )
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
                 label = { Text("Template Title") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = textFieldColors
             )
 
-            CategorySelector(selectedCategory = selectedCategory, onCategorySelected = { selectedCategory = it })
+            CategorySelector(selectedCategory = selectedCategory, onCategorySelected = { selectedCategory = it }, colors = textFieldColors)
 
-            ThreatLevelSelector(selectedThreatLevel = selectedThreatLevel, onThreatSelected = { selectedThreatLevel = it })
+            ThreatLevelSelector(selectedThreatLevel = selectedThreatLevel, onThreatSelected = { selectedThreatLevel = it }, colors = textFieldColors)
 
             Spacer(modifier = Modifier.weight(1f))
 
