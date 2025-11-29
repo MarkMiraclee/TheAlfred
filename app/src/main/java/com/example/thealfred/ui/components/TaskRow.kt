@@ -8,7 +8,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,23 +20,22 @@ import com.example.thealfred.ui.theme.AlertRed
 import com.example.thealfred.ui.theme.WarningOrange
 import java.util.concurrent.TimeUnit
 
-// Вспомогательная функция для форматирования дедлайна
 @Composable
 private fun formatDueDate(dueDate: Long): Pair<String, Color> {
     val currentTime = System.currentTimeMillis()
     val remainingTime = dueDate - currentTime
 
     if (remainingTime < 0) {
-        return "ПРОСРОЧЕНО" to AlertRed
+        return "OVERDUE" to AlertRed
     }
 
     val days = TimeUnit.MILLISECONDS.toDays(remainingTime)
     val hours = TimeUnit.MILLISECONDS.toHours(remainingTime) % 24
 
     return when {
-        days > 1 -> "Осталось: $days д." to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        days == 1L -> "Осталось: 1 день" to WarningOrange
-        else -> "Осталось: $hours ч." to WarningOrange
+        days > 1 -> "$days days left" to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        days == 1L -> "1 day left" to WarningOrange
+        else -> "$hours hours left" to WarningOrange
     }
 }
 
@@ -47,7 +46,7 @@ fun TaskRow(task: Task, onToggleComplete: (Task) -> Unit) {
     ) {
         Checkbox(
             checked = task.isCompleted,
-            onCheckedChange = { onToggleComplete(task) },
+            onCheckedChange = { onToggleComplete(task) }, // Убрана защита от двойного клика
             colors = CheckboxDefaults.colors(
                 checkedColor = MaterialTheme.colorScheme.primary,
                 uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
@@ -64,7 +63,6 @@ fun TaskRow(task: Task, onToggleComplete: (Task) -> Unit) {
                 fontWeight = if (task.isCompleted) FontWeight.Normal else FontWeight.Medium
             )
 
-            // Отображение дедлайна, если он есть
             task.dueDate?.let {
                 val (text, color) = formatDueDate(it)
                 Text(
@@ -77,7 +75,7 @@ fun TaskRow(task: Task, onToggleComplete: (Task) -> Unit) {
         }
 
         Text(
-            text = "+${task.effectiveXpValue} XP",
+            text = "+${task.xpValue} XP",
             color = WarningOrange,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold

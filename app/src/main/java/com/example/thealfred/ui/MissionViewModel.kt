@@ -38,6 +38,10 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
     // --- Шаблоны ---
     val allTemplates: StateFlow<List<Template>> = repository.allTemplates.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    fun insertTemplate(template: Template) = viewModelScope.launch {
+        repository.insertTemplate(template)
+    }
+
     fun createTaskFromTemplate(template: Template) = viewModelScope.launch {
         repository.createTaskFromTemplate(template)
     }

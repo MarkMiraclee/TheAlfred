@@ -22,22 +22,31 @@ import com.example.thealfred.ui.MissionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TemplatesScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
+fun TemplatesScreen(viewModel: MissionViewModel, onNavigateToAddTask: () -> Unit, onNavigateBack: () -> Unit) {
     val templates by viewModel.allTemplates.collectAsState()
+    var lastClickTime by remember { mutableStateOf(0L) }
+
+    fun debouncedAction(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > DEBOUNCE_INTERVAL_MS) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("PLANNING TOOL: TEMPLATES") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: Add template creation dialog */ }) {
+            FloatingActionButton(onClick = { debouncedAction { onNavigateToAddTask() } }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Template")
             }
         }
@@ -62,6 +71,16 @@ fun TemplatesScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
 
 @Composable
 private fun TemplateCard(template: Template, viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
+    var lastClickTime by remember { mutableStateOf(0L) }
+
+    fun debouncedAction(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > DEBOUNCE_INTERVAL_MS) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
+    
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -74,14 +93,16 @@ private fun TemplateCard(template: Template, viewModel: MissionViewModel, onNavi
                 Text("Threat: ${template.threatLevel.name}", fontSize = 14.sp)
             }
             // Кнопка "Создать задачу"
-            IconButton(onClick = {
-                viewModel.createTaskFromTemplate(template)
-                onNavigateBack() // Возвращаемся на главный экран после создания
+            IconButton(onClick = { 
+                debouncedAction {
+                    viewModel.createTaskFromTemplate(template)
+                    onNavigateBack()
+                } 
             }) {
                 Icon(Icons.Default.PlayArrow, contentDescription = "Create Task from Template", tint = MaterialTheme.colorScheme.primary)
             }
             // Кнопка "Удалить"
-            IconButton(onClick = { viewModel.deleteTemplate(template.id) }) {
+            IconButton(onClick = { debouncedAction { viewModel.deleteTemplate(template.id) } }) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete Template", tint = Color.Gray)
             }
         }

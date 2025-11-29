@@ -11,9 +11,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -31,6 +29,8 @@ import com.example.thealfred.ui.components.VigilanteRankDisplay
 import com.example.thealfred.ui.theme.*
 import com.example.thealfred.ui.utils.TaskUtils
 
+const val DEBOUNCE_INTERVAL_MS = 1000L
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DailyBriefingScreen(
@@ -43,16 +43,25 @@ fun DailyBriefingScreen(
     val activeTasks by viewModel.activeTasksSortedByPriority.collectAsState()
     val userProgress by viewModel.userProgress.collectAsState()
     val dailyQuote by viewModel.dailyQuote.collectAsState()
+    var lastClickTime by remember { mutableStateOf(0L) }
+
+    fun debouncedAction(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > DEBOUNCE_INTERVAL_MS) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("DAILY BRIEFING", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 actions = {
-                    IconButton(onClick = onNavigateToJournal) {
+                    IconButton(onClick = { debouncedAction { onNavigateToJournal() } }) {
                         Icon(Icons.Filled.Book, contentDescription = "Journal")
                     }
-                    IconButton(onClick = onNavigateToTemplates) {
+                    IconButton(onClick = { debouncedAction { onNavigateToTemplates() } }) {
                         Icon(Icons.Default.Build, contentDescription = "Planning Tools")
                     }
                 },
@@ -62,7 +71,7 @@ fun DailyBriefingScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddTask) {
+            FloatingActionButton(onClick = { debouncedAction { onNavigateToAddTask() } }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
             }
         }
@@ -155,7 +164,7 @@ fun DailyBriefingScreen(
             
             item {
                  Button(
-                    onClick = onNavigateToCompleted,
+                    onClick = { debouncedAction { onNavigateToCompleted() } },
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {

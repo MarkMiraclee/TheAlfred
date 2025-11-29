@@ -13,9 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,13 +30,22 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     val completionRate by viewModel.criticalThreatsCompletionRate.collectAsState()
     val timeSpentPerCategory by viewModel.timeSpentPerCategory.collectAsState()
     val weeklyProductivity by viewModel.weeklyProductivity.collectAsState()
+    var lastClickTime by remember { mutableStateOf(0L) }
+
+    fun debouncedAction(action: () -> Unit) {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastClickTime > DEBOUNCE_INTERVAL_MS) {
+            lastClickTime = currentTime
+            action()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("BATCAVE LOG", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
+                    IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },

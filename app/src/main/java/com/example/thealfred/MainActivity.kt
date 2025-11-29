@@ -4,8 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -87,6 +85,13 @@ fun AppContent(viewModel: MissionViewModel) {
             }
             composable("templates") { 
                 TemplatesScreen(
+                    viewModel = viewModel,
+                    onNavigateToAddTask = { navController.navigate("add_template") },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("add_template") {
+                AddTemplateScreen(
                     viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() }
                 )
