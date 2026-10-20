@@ -13,6 +13,7 @@ import com.example.thealfred.data.Task
 import com.example.thealfred.data.TaskCategory
 import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
+import com.example.thealfred.ui.utils.TaskUtils
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -96,7 +97,9 @@ fun AddTaskScreen(
                     confirmButton = {
                         TextButton(
                             onClick = {
+                                // DatePicker отдаёт полночь по UTC — переводим в конец выбранного дня по локальному времени
                                 selectedDueDate = datePickerState.selectedDateMillis
+                                    ?.let { TaskUtils.pickerDateToEndOfLocalDay(it) }
                                 showDatePicker = false
                             },
                             enabled = confirmEnabled
