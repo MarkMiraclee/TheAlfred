@@ -4,30 +4,35 @@ import com.example.thealfred.data.Progress
 
 object RankUtils {
 
-    private val rankThresholds = mapOf(
-        "D" to 500,
-        "C" to 1500,
-        "B" to 3000,
-        "A" to 5000,
-        "S" to Int.MAX_VALUE // S-ранг - максимальный
+    /**
+     * Ранги по возрастанию: буква ранга и XP, с которого этот ранг начинается.
+     * Должно совпадать с порогами в TaskRepository.determineRank().
+     */
+    private val ranks = listOf(
+        "D" to 0,
+        "C" to 500,
+        "B" to 1500,
+        "A" to 3000,
+        "S" to 5000
     )
 
+    /** XP, с которого начинается следующий ранг. Для максимального (или неизвестного) ранга — Int.MAX_VALUE. */
     fun getNextRankThreshold(currentRank: String): Int {
-        return rankThresholds[currentRank] ?: Int.MAX_VALUE
+        val index = ranks.indexOfFirst { it.first == currentRank }
+        if (index < 0) return Int.MAX_VALUE
+        return ranks.getOrNull(index + 1)?.second ?: Int.MAX_VALUE
     }
 
+    /** Прогресс внутри текущего ранга от 0f до 1f. На максимальном ранге всегда 1f. */
     fun getProgressToNextRank(progress: Progress): Float {
-        val currentRank = progress.currentRank
-        val nextRankThreshold = getNextRankThreshold(currentRank)
-        
-        val previousRankThreshold = rankThresholds.entries
-            .firstOrNull { it.value == nextRankThreshold }?.key?.let { key ->
-                rankThresholds.filterKeys { it < key }.values.maxOrNull() 
-            } ?: 0
+        val index = ranks.indexOfFirst { it.first == progress.currentRank }
+        if (index < 0) return 0f
 
-        val rankXpRange = (nextRankThreshold - previousRankThreshold).toFloat()
-        val userXpInRank = (progress.totalVigilancePoints - previousRankThreshold).toFloat()
+        val rankStart = ranks[index].second
+        val nextRankStart = ranks.getOrNull(index + 1)?.second ?: return 1f
 
-        return if (rankXpRange > 0) userXpInRank / rankXpRange else 0f
+        val xpInRank = (progress.totalVigilancePoints - rankStart).toFloat()
+        val rankXpRange = (nextRankStart - rankStart).toFloat()
+        return (xpInRank / rankXpRange).coerceIn(0f, 1f)
     }
 }
