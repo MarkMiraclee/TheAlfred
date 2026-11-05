@@ -1,6 +1,7 @@
 package com.example.thealfred.ui.screens
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -55,11 +55,13 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-// Палитра журнала: только индикаторы — зелёный успех, красный крит, серый текст
-private val LogGray = Color(0xFF9E9E9E)
-private val LogDim = Color(0xFF6E6E6E)
+// Палитра журнала: только индикаторы — зелёный успех, красный крит, серый текст.
+// Серые подобраны читаемыми на тёмных блоках #141414
+private val LogGray = Color(0xFFB5B5B5)
+private val LogDim = Color(0xFF8A8A8A)
 private val LogGreen = ConditioningGreen
 private val LogRed = AlertRed
+private val LogPanel = Color(0xFF141414)
 
 private enum class LogPeriod(val label: String) {
     TODAY("СЕГОДНЯ"),
@@ -109,7 +111,7 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                 title = {
                     Text(
                         "BATCAVE LOG // TERMINAL",
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 18.sp
@@ -117,10 +119,11 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                 },
                 navigationIcon = {
                     IconButton(onClick = { debouncedAction { onNavigateBack() } }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                // Тёмная подложка под шапкой: без неё заголовок тонет на светлом фоне пещеры
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = LogPanel.copy(alpha = 0.92f))
             )
         },
         containerColor = Color.Transparent
@@ -188,55 +191,58 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
             // ── 3. ХРОНИКА ОПЕРАЦИЙ ──────────────────────────────
             item { SectionHeader("MISSION LOG") }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LogPeriod.entries.forEach { p ->
+                // Фильтры и строки лога — на тёмном блоке, иначе текст тонет на фоне
+                ConsoleCard {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        LogPeriod.entries.forEach { p ->
+                            Text(
+                                text = p.label,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 12.sp,
+                                fontWeight = if (period == p) FontWeight.Bold else FontWeight.Normal,
+                                color = if (period == p) LogGreen else LogDim,
+                                modifier = Modifier.clickable { period = p }
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (logTasks.isEmpty()) {
                         Text(
-                            text = p.label,
+                            "NO RECORDS IN THIS RANGE",
                             fontFamily = FontFamily.Monospace,
                             fontSize = 12.sp,
-                            fontWeight = if (period == p) FontWeight.Bold else FontWeight.Normal,
-                            color = if (period == p) LogGreen else LogDim,
-                            modifier = Modifier.clickable { period = p }
+                            color = LogDim
                         )
+                    } else {
+                        logTasks.forEach { task ->
+                            MissionLogRow(task, logTimeFormat) { selectedTask = task }
+                        }
                     }
-                }
-            }
-            if (logTasks.isEmpty()) {
-                item {
-                    Text(
-                        "NO RECORDS IN THIS RANGE",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                        color = LogDim,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            } else {
-                items(logTasks, key = { it.id }) { task ->
-                    MissionLogRow(task, logTimeFormat) { selectedTask = task }
                 }
             }
 
             // ── 5. ИСТОРИЯ НЕДЕЛЬ (снимки из weekly_summaries) ───
             item { SectionHeader("WEEKLY HISTORY") }
-            if (weeklySummaries.isEmpty()) {
-                item {
-                    Text(
-                        "NO COMPLETED WEEKS YET",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                        color = LogDim
-                    )
-                }
-            } else {
-                items(weeklySummaries, key = { it.id }) { week ->
-                    Text(
-                        text = "${formatWeekRange(week.weekStart)} | RANK ${week.currentRank} | ${week.totalXp} XP | ${week.tasksCompleted} TASKS",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                        color = LogGray,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+            item {
+                ConsoleCard {
+                    if (weeklySummaries.isEmpty()) {
+                        Text(
+                            "NO COMPLETED WEEKS YET",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 12.sp,
+                            color = LogDim
+                        )
+                    } else {
+                        weeklySummaries.forEach { week ->
+                            Text(
+                                text = "${formatWeekRange(week.weekStart)} | RANK ${week.currentRank} | ${week.totalXp} XP | ${week.tasksCompleted} TASKS",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 12.sp,
+                                color = LogGray,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -251,7 +257,13 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
 
 @Composable
 private fun SectionHeader(title: String) {
-    Column {
+    // Тёмная плашка под заголовком секции: на ярком фоне пещеры серый текст не читается
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(LogPanel.copy(alpha = 0.92f), RoundedCornerShape(4.dp))
+            .padding(horizontal = 12.dp, vertical = 7.dp)
+    ) {
         Text(
             text = "── $title ──",
             fontFamily = FontFamily.Monospace,
@@ -266,7 +278,7 @@ private fun SectionHeader(title: String) {
 private fun ConsoleCard(content: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        colors = CardDefaults.cardColors(containerColor = LogPanel),
         shape = RoundedCornerShape(4.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) { content() }
