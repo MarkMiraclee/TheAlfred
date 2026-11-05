@@ -52,35 +52,18 @@ interface TaskDao {
     suspend fun countTodayMorningRituals(startOfDay: Long): Int
 
     // --- Аналитика ---
-    // Окно «последние 7 дней» вычисляем прямо в SQL через strftime('now'):
-    // так отсечка пересчитывается при каждом исполнении запроса, а не
-    // замораживается на момент создания Flow.
 
-    @Query(
-        "SELECT COUNT(*) FROM tasks WHERE threatLevel = 'CRITICAL_THREAT' " +
-            "AND createdAt >= strftime('%s','now') * 1000 - 604800000"
-    )
-    fun getTotalCriticalTasksInLastWeek(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 1")
+    fun getTotalCompletedCount(): Flow<Int>
 
+    // Пропущенные дедлайны: задачи, закрытые позже дедлайна,
+    // плюс активные, чей дедлайн уже прошёл. Просто констатация, без штрафов.
     @Query(
-        "SELECT COUNT(*) FROM tasks WHERE threatLevel = 'CRITICAL_THREAT' AND isCompleted = 1 " +
-            "AND completedAt >= strftime('%s','now') * 1000 - 604800000"
+        "SELECT COUNT(*) FROM tasks WHERE dueDate IS NOT NULL AND (" +
+            "(isCompleted = 1 AND completedAt > dueDate) OR " +
+            "(isCompleted = 0 AND dueDate < strftime('%s','now') * 1000))"
     )
-    fun getCompletedCriticalTasksInLastWeek(): Flow<Int>
-
-    // Это время от создания задачи до её закрытия (completedAt - createdAt),
-    // а не фактически затраченное на задачу время
-    @Query(
-        "SELECT category, SUM(completedAt - createdAt) as totalDuration FROM tasks " +
-            "WHERE isCompleted = 1 AND completedAt IS NOT NULL GROUP BY category"
-    )
-    fun getTimeToCompletePerCategory(): Flow<List<CategoryDuration>>
-
-    @Query(
-        "SELECT * FROM tasks WHERE isCompleted = 1 " +
-            "AND completedAt >= strftime('%s','now') * 1000 - 604800000"
-    )
-    fun getCompletedTasksInLastWeek(): Flow<List<Task>>
+    fun getMissedDeadlinesCount(): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 1 AND completedAt >= :from AND completedAt < :to")
     suspend fun countCompletedBetween(from: Long, to: Long): Int

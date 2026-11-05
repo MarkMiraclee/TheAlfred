@@ -209,30 +209,35 @@ class TaskRepository(private val db: AppDatabase, private val templateDao: Templ
 
     val weeklySummaries: Flow<List<WeeklySummary>> = weeklySummaryDao.getWeeklySummaries()
 
-    // Выполнено задач в текущей неделе (граница недели хранится в Progress)
-    val tasksCompletedThisWeek: Flow<Int> = combine(
+    // --- Глобальная статистика (журнал) ---
+
+    // Всего выполнено миссий за всё время
+    val totalCompletedMissions: Flow<Int> = taskDao.getTotalCompletedCount()
+
+    // Пропущено дедлайнов за всё время (закрыты позже срока + активные просроченные)
+    val missedDeadlines: Flow<Int> = taskDao.getMissedDeadlinesCount()
+
+    // Общий XP за всё время: суммы недельных итогов + XP текущей недели
+    val allTimeXp: Flow<Int> = combine(
+        weeklySummaryDao.getWeeklySummaries(),
+        userProgress
+    ) { summaries, progress ->
+        summaries.sumOf { it.totalXp } + progress.totalVigilancePoints
+    }
+
+    // XP по дням текущей недели (Пн-Вс, включая нулевые дни) для столбчатой диаграммы
+    val currentWeekDailyXp: Flow<List<DailyProductivity>> = combine(
         taskDao.getCompletedTasks(),
         userProgress
     ) { tasks, progress ->
-        tasks.count { (it.completedAt ?: 0L) >= progress.weekStart }
-    }
-
-    val criticalThreatsCompletionRate: Flow<Float> = combine(
-        taskDao.getTotalCriticalTasksInLastWeek(),
-        taskDao.getCompletedCriticalTasksInLastWeek()
-    ) { total, completed ->
-        if (total > 0) completed.toFloat() / total.toFloat() else 0f
-    }
-
-    // Время от создания задач до их закрытия (не фактическое время работы)
-    val timeToCompletePerCategory: Flow<List<CategoryDuration>> = taskDao.getTimeToCompletePerCategory()
-
-    val weeklyProductivity: Flow<List<DailyProductivity>> =
-        taskDao.getCompletedTasksInLastWeek().map { tasks ->
-            tasks.groupBy {
-                Instant.ofEpochMilli(it.completedAt!!).atZone(ZoneId.systemDefault()).toLocalDate()
-            }.map { (date, tasksOnDate) ->
-                DailyProductivity(date, tasksOnDate.sumOf { it.xpValue })
-            }.sortedBy { it.date }
+        val zone = ZoneId.systemDefault()
+        val monday = Instant.ofEpochMilli(progress.weekStart).atZone(zone).toLocalDate()
+        val perDay = tasks
+            .filter { (it.completedAt ?: 0L) >= progress.weekStart }
+            .groupBy { Instant.ofEpochMilli(it.completedAt!!).atZone(zone).toLocalDate() }
+        (0..6).map { dayIndex ->
+            val day = monday.plusDays(dayIndex.toLong())
+            DailyProductivity(day, perDay[day]?.sumOf { it.xpValue } ?: 0)
         }
+    }
 }

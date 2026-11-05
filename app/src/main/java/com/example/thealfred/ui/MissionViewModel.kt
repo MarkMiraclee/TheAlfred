@@ -67,12 +67,12 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
         repository.deleteTemplate(templateId)
     }
 
-    // --- Аналитика ---
-    val criticalThreatsCompletionRate: StateFlow<Float> = repository.criticalThreatsCompletionRate.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
-    val timeToCompletePerCategory: StateFlow<List<CategoryDuration>> = repository.timeToCompletePerCategory.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val weeklyProductivity: StateFlow<List<DailyProductivity>> = repository.weeklyProductivity.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    // --- Аналитика (журнал) ---
+    val totalCompletedMissions: StateFlow<Int> = repository.totalCompletedMissions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val allTimeXp: StateFlow<Int> = repository.allTimeXp.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val missedDeadlines: StateFlow<Int> = repository.missedDeadlines.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val currentWeekDailyXp: StateFlow<List<DailyProductivity>> = repository.currentWeekDailyXp.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val weeklySummaries: StateFlow<List<WeeklySummary>> = repository.weeklySummaries.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val tasksCompletedThisWeek: StateFlow<Int> = repository.tasksCompletedThisWeek.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // ОБРАБОТЧИКИ СОБЫТИЙ
     fun toggleTaskStatus(task: Task) {
