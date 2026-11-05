@@ -13,7 +13,7 @@ interface TemplateDao {
     fun getAllTemplates(): Flow<List<Template>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTemplate(template: Template)
+    suspend fun insertTemplate(template: Template): Long
 
     @Query("DELETE FROM templates WHERE id = :templateId")
     suspend fun deleteTemplateById(templateId: Int)

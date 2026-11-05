@@ -23,6 +23,7 @@ import com.example.thealfred.data.TaskRepository
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.MissionViewModelFactory
 import com.example.thealfred.ui.screens.*
+import com.example.thealfred.ui.theme.BatcaveBlack
 import com.example.thealfred.ui.theme.TheAlfredTheme
 
 class MainActivity : ComponentActivity() {
@@ -30,14 +31,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val database = AppDatabase.getDatabase(applicationContext)
-        val repository = TaskRepository(database.taskDao(), database.templateDao())
+        val repository = TaskRepository(database, database.templateDao())
         val factory = MissionViewModelFactory(repository, application)
 
         setContent {
             val viewModel: MissionViewModel = viewModel(factory = factory)
             val userProgress by viewModel.userProgress.collectAsState()
 
-            TheAlfredTheme(currentRank = userProgress.currentRank) {
+            // Пока прогресс не загружен, берём тему по умолчанию — контент в это время не рисуется
+            TheAlfredTheme(currentRank = userProgress?.currentRank ?: "D") {
                 // Surface больше не основной контейнер, он будет внутри AppContent
                 AppContent(viewModel = viewModel)
             }
@@ -50,8 +52,9 @@ fun AppContent(viewModel: MissionViewModel) {
     val userProgress by viewModel.userProgress.collectAsState()
     val showReadinessCheck by viewModel.showReadinessCheck.collectAsState()
 
-    // Определяем фон в зависимости от ранга
-    val backgroundRes = when (userProgress.currentRank) {
+    // Определяем фон в зависимости от ранга; null (прогресс грузится) — без картинки,
+    // чтобы дефолтный ранг D не мигал перед показом актуального фона
+    val backgroundRes = when (userProgress?.currentRank) {
         "D" -> R.drawable.rank_d_background
         "C" -> R.drawable.rank_c_background
         "B" -> R.drawable.rank_b_background
@@ -74,56 +77,64 @@ fun AppContent(viewModel: MissionViewModel) {
         // Основной контент приложения поверх фона
         Surface(
             modifier = Modifier.fillMaxSize(),
-            // Делаем Surface прозрачным, чтобы фон был виден
-            color = if (backgroundRes != 0) Color.Transparent else MaterialTheme.colorScheme.background
+            // Делаем Surface прозрачным, чтобы фон был виден; пока прогресс грузится — чёрный
+            color = if (backgroundRes != 0) Color.Transparent else BatcaveBlack
         ) {
-            if (showReadinessCheck) {
-                ReadinessCheckScreen(onRitualCompleted = { viewModel.completeRitual() })
-            } else {
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = "daily_briefing",
-                ) {
-                    composable("daily_briefing") {
-                        DailyBriefingScreen(
-                            viewModel = viewModel,
-                            onNavigateToCompleted = { navController.navigate("completed_tasks") },
-                            onNavigateToJournal = { navController.navigate("batcave_log") },
-                            onNavigateToTemplates = { navController.navigate("templates") },
-                            onNavigateToAddTask = { navController.navigate("add_task") }
-                        )
-                    }
-                    composable("add_task") {
-                        AddTaskScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("batcave_log") {
-                        BatcaveLogScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("completed_tasks") {
-                        CompletedTasksScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("templates") {
-                        TemplatesScreen(
-                            viewModel = viewModel,
-                            onNavigateToAddTask = { navController.navigate("add_template") },
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable("add_template") {
-                        AddTemplateScreen(
-                            viewModel = viewModel,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
+            // Контент и фон ранга рисуем только после загрузки прогресса из БД:
+            // до этого показываем просто чёрный экран без прыжков картинки
+            if (userProgress != null) {
+                when (showReadinessCheck) {
+                    // Пока идёт проверка ритуала в БД — показываем только фон,
+                    // чтобы не мигать ReadinessCheck у тех, кто уже сделал ритуал
+                    null -> Unit
+                    true -> ReadinessCheckScreen(onRitualCompleted = { viewModel.completeRitual() })
+                    false -> {
+                        val navController = rememberNavController()
+                        NavHost(
+                        navController = navController,
+                        startDestination = "daily_briefing",
+                    ) {
+                        composable("daily_briefing") {
+                            DailyBriefingScreen(
+                                viewModel = viewModel,
+                                onNavigateToCompleted = { navController.navigate("completed_tasks") },
+                                onNavigateToJournal = { navController.navigate("batcave_log") },
+                                onNavigateToTemplates = { navController.navigate("templates") },
+                                onNavigateToAddTask = { navController.navigate("add_task") }
+                            )
+                        }
+                        composable("add_task") {
+                            AddTaskScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("batcave_log") {
+                            BatcaveLogScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("completed_tasks") {
+                            CompletedTasksScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("templates") {
+                            TemplatesScreen(
+                                viewModel = viewModel,
+                                onNavigateToAddTask = { navController.navigate("add_template") },
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("add_template") {
+                            AddTemplateScreen(
+                                viewModel = viewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        }
                     }
                 }
             }

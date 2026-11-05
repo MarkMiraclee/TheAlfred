@@ -1,7 +1,6 @@
 package com.example.thealfred.data
 
 import androidx.room.Entity
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 
 // Основная модель данных для задачи
@@ -21,16 +20,19 @@ data class Task(
 
     val isCompleted: Boolean = false,
 
+    // Флаг утреннего ритуала (Readiness Check) — используется аналитикой,
+    // поэтому ритуал опознаётся не по названию задачи
+    val isMorningRitual: Boolean = false,
+
     val createdAt: Long = System.currentTimeMillis(),
-    
+
     // Дата дедлайна (для системы срочности)
     val dueDate: Long? = null,
-    
+
     // Дата завершения (для аналитики)
     val completedAt: Long? = null
 ) {
-    // Теперь XP всегда вычисляются на основе уровня угрозы
+    // Вычисляемое свойство без backing field — Room его не сохраняет
     val xpValue: Int
-        @Ignore // Говорим Room не пытаться сохранить это поле в БД
         get() = threatLevel.xpValue
 }

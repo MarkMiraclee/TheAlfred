@@ -46,10 +46,13 @@ fun VigilanteRankDisplay(progress: Progress) {
             Spacer(modifier = Modifier.height(8.dp))
             
             LinearProgressIndicator(
-                progress = progressPercentage,
+                progress = { progressPercentage },
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                // Убираем точку-ограничитель и зазор в конце трека (поведение M3 по умолчанию)
+                gapSize = 0.dp,
+                drawStopIndicator = {}
             )
             Spacer(modifier = Modifier.height(4.dp))
             Row(
@@ -71,7 +74,7 @@ fun VigilanteRankDisplay(progress: Progress) {
             // --- Раскрывающаяся часть с категориями ---
             AnimatedVisibility(visible = isExpanded) {
                 Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Divider()
+                    HorizontalDivider()
                     Spacer(modifier = Modifier.height(4.dp))
                     CategoryProgressCard(
                         title = "OPERATIONAL MISSIONS",

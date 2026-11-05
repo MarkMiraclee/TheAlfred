@@ -1,8 +1,8 @@
 package com.example.thealfred.ui.utils
 
 import android.content.Context
-import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 object DailyQuoteManager {
 
@@ -36,7 +36,10 @@ object DailyQuoteManager {
 
     fun getQuote(context: Context): String {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        // Ключ даты без SimpleDateFormat: просто y-M-d по локальному календарю
+        val today = Calendar.getInstance().run {
+            String.format(Locale.US, "%04d-%02d-%02d", get(Calendar.YEAR), get(Calendar.MONTH) + 1, get(Calendar.DAY_OF_MONTH))
+        }
 
         val savedDate = prefs.getString(KEY_QUOTE_DATE, null)
 

@@ -22,13 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.ProductivityChart
+import com.example.thealfred.ui.utils.DEBOUNCE_INTERVAL_MS
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     val completionRate by viewModel.criticalThreatsCompletionRate.collectAsState()
-    val timeSpentPerCategory by viewModel.timeSpentPerCategory.collectAsState()
+    val timeToCompletePerCategory by viewModel.timeToCompletePerCategory.collectAsState()
     val weeklyProductivity by viewModel.weeklyProductivity.collectAsState()
     var lastClickTime by remember { mutableStateOf(0L) }
 
@@ -107,20 +108,21 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
             }
 
             // Карточка с KPI 2
-            if (timeSpentPerCategory.isNotEmpty()) {
+            if (timeToCompletePerCategory.isNotEmpty()) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "TIME PER PROTOCOL",
+                                // Это время от создания задачи до её закрытия, а не время работы над ней
+                                text = "TIME FROM CREATION TO COMPLETION",
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(16.dp))
-                            timeSpentPerCategory.forEach {
+                            timeToCompletePerCategory.forEach {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,

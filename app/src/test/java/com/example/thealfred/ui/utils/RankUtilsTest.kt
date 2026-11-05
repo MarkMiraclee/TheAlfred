@@ -1,6 +1,7 @@
 package com.example.thealfred.ui.utils
 
 import com.example.thealfred.data.Progress
+import com.example.thealfred.data.VigilanteRanks
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -51,5 +52,26 @@ class RankUtilsTest {
         assertEquals(3000, RankUtils.getNextRankThreshold("B"))
         assertEquals(5000, RankUtils.getNextRankThreshold("A"))
         assertEquals(Int.MAX_VALUE, RankUtils.getNextRankThreshold("S"))
+    }
+
+    @Test
+    fun determineRankBoundaries() {
+        // Границы порогов: 500 -> C, 1500 -> B, 3000 -> A, 5000 -> S
+        assertEquals("D", VigilanteRanks.determineRank(0))
+        assertEquals("D", VigilanteRanks.determineRank(499))
+        assertEquals("C", VigilanteRanks.determineRank(500))
+        assertEquals("C", VigilanteRanks.determineRank(1499))
+        assertEquals("B", VigilanteRanks.determineRank(1500))
+        assertEquals("B", VigilanteRanks.determineRank(2999))
+        assertEquals("A", VigilanteRanks.determineRank(3000))
+        assertEquals("A", VigilanteRanks.determineRank(4999))
+        assertEquals("S", VigilanteRanks.determineRank(5000))
+        assertEquals("S", VigilanteRanks.determineRank(12000))
+    }
+
+    @Test
+    fun negativeXpStaysRankD() {
+        // После отмены выполненных задач XP может уйти в минус
+        assertEquals("D", VigilanteRanks.determineRank(-50))
     }
 }

@@ -15,7 +15,10 @@ import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.utils.TaskUtils
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.GregorianCalendar
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,7 +92,25 @@ fun AddTaskScreen(
             }
 
             if (showDatePicker) {
-                val datePickerState = rememberDatePickerState()
+                // Запрещаем выбирать прошедшие даты: DatePicker отдаёт полночь UTC выбранного дня,
+                // поэтому границей берём полночь UTC календарного «сегодня» по локальному времени
+                val todayUtcMidnightMillis = remember {
+                    val now = Calendar.getInstance()
+                    GregorianCalendar(TimeZone.getTimeZone("UTC")).apply {
+                        clear()
+                        set(
+                            now.get(Calendar.YEAR),
+                            now.get(Calendar.MONTH),
+                            now.get(Calendar.DAY_OF_MONTH)
+                        )
+                    }.timeInMillis
+                }
+                val datePickerState = rememberDatePickerState(
+                    selectableDates = object : SelectableDates {
+                        override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                            utcTimeMillis >= todayUtcMidnightMillis
+                    }
+                )
                 val confirmEnabled by remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
 
                 DatePickerDialog(
@@ -153,7 +174,7 @@ fun CategorySelector(selectedCategory: TaskCategory, onCategorySelected: (TaskCa
             readOnly = true,
             label = { Text("Operational Protocol") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             colors = colors
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -179,7 +200,7 @@ fun ThreatLevelSelector(selectedThreatLevel: ThreatLevel, onThreatSelected: (Thr
             readOnly = true,
             label = { Text("Threat Level") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             colors = colors
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {

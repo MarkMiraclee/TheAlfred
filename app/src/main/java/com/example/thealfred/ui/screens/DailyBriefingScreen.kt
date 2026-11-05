@@ -24,14 +24,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.thealfred.data.Progress
 import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.TaskRow
 import com.example.thealfred.ui.components.VigilanteRankDisplay
 import com.example.thealfred.ui.theme.*
+import com.example.thealfred.ui.utils.DEBOUNCE_INTERVAL_MS
 import com.example.thealfred.ui.utils.TaskUtils
-
-const val DEBOUNCE_INTERVAL_MS = 1000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +109,9 @@ fun DailyBriefingScreen(
             }
 
             item {
-                VigilanteRankDisplay(progress = userProgress)
+                // Экран рисуется только после загрузки прогресса (гейт в MainActivity),
+                // дефолт здесь — просто формальность для nullable-типа
+                VigilanteRankDisplay(progress = userProgress ?: Progress())
             }
 
             val overdueTasks = activeTasks.filter { TaskUtils.isOverdue(it) }
@@ -134,7 +136,11 @@ fun DailyBriefingScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("⚠ CAVE ALERT", color = AlertRed, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             overdueTasks.forEach { task ->
-                                TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
+                                TaskRow(
+                                    task = task,
+                                    onToggleComplete = { viewModel.toggleTaskStatus(it) },
+                                    onDelete = { viewModel.deleteTask(it.id) }
+                                )
                             }
                         }
                     }
@@ -147,7 +153,11 @@ fun DailyBriefingScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("CRITICAL THREATS", color = CriticalThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             criticalTasks.forEach { task ->
-                                TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
+                                TaskRow(
+                                    task = task,
+                                    onToggleComplete = { viewModel.toggleTaskStatus(it) },
+                                    onDelete = { viewModel.deleteTask(it.id) }
+                                )
                             }
                         }
                     }
@@ -160,7 +170,11 @@ fun DailyBriefingScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("MEDIUM THREATS", color = MediumThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             mediumTasks.forEach { task ->
-                                TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
+                                TaskRow(
+                                    task = task,
+                                    onToggleComplete = { viewModel.toggleTaskStatus(it) },
+                                    onDelete = { viewModel.deleteTask(it.id) }
+                                )
                             }
                         }
                     }
@@ -173,7 +187,11 @@ fun DailyBriefingScreen(
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("MINOR THREATS", color = MinorThreatColor, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             minorTasks.forEach { task ->
-                                TaskRow(task = task, onToggleComplete = { viewModel.toggleTaskStatus(it) })
+                                TaskRow(
+                                    task = task,
+                                    onToggleComplete = { viewModel.toggleTaskStatus(it) },
+                                    onDelete = { viewModel.deleteTask(it.id) }
+                                )
                             }
                         }
                     }

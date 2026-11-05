@@ -19,6 +19,7 @@ import com.example.thealfred.data.ThreatLevel
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.CategoryProgressCard
 import com.example.thealfred.ui.theme.*
+import com.example.thealfred.ui.utils.DEBOUNCE_INTERVAL_MS
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.Icons
@@ -102,7 +103,7 @@ fun CompletedTasksScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                         
-                        Divider(color = Color.Gray.copy(alpha = 0.5f))
+                        HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f))
                         
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -192,5 +193,5 @@ private fun CompletedTaskRow(task: Task) {
             fontSize = 14.sp
         )
     }
-    Divider(color = Color.Gray.copy(alpha = 0.2f)) // Разделитель между задачами
+    HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f)) // Разделитель между задачами
 }

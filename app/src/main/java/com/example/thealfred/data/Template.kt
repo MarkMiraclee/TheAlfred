@@ -10,7 +10,4 @@ data class Template(
     val title: String,
     val category: TaskCategory,
     val threatLevel: ThreatLevel
-) {
-    val effectiveXpValue: Int
-        get() = threatLevel.xpValue
-}
+)

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.thealfred.data.Template
 import com.example.thealfred.ui.MissionViewModel
+import com.example.thealfred.ui.utils.DEBOUNCE_INTERVAL_MS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

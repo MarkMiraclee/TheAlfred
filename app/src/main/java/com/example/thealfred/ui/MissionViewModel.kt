@@ -17,8 +17,12 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
     private val _dailyQuote = MutableStateFlow("")
     val dailyQuote: StateFlow<String> = _dailyQuote.asStateFlow()
 
-    private val _showReadinessCheck = MutableStateFlow(true)
-    val showReadinessCheck: StateFlow<Boolean> = _showReadinessCheck.asStateFlow()
+    /**
+     * null — проверка ритуала в БД ещё идёт (показываем только фон),
+     * true — ритуал за сегодня не выполнен, false — выполнен.
+     */
+    private val _showReadinessCheck = MutableStateFlow<Boolean?>(null)
+    val showReadinessCheck: StateFlow<Boolean?> = _showReadinessCheck.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -27,13 +31,14 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
         }
     }
 
-    val allTasks: StateFlow<List<Task>> = repository.allTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val activeTasks: StateFlow<List<Task>> = repository.activeTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val criticalTasks: StateFlow<List<Task>> = repository.criticalTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val overdueTasks: StateFlow<List<Task>> = repository.overdueTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val completedTasks: StateFlow<List<Task>> = repository.completedTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val activeTasksSortedByPriority: StateFlow<List<Task>> = repository.activeTasksSortedByPriority.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val userProgress: StateFlow<Progress> = repository.userProgress.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Progress())
+    val completedTasks: StateFlow<List<Task>> = repository.completedTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * null — прогресс ещё грузится из БД. До загрузки не рисуем ни фон ранга, ни контент,
+     * чтобы не мигал фон дефолтного ранга D перед показом актуального ранга.
+     */
+    val userProgress: StateFlow<Progress?> = repository.userProgress.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // --- Шаблоны ---
     val allTemplates: StateFlow<List<Template>> = repository.allTemplates.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -52,17 +57,15 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
 
     // --- Аналитика ---
     val criticalThreatsCompletionRate: StateFlow<Float> = repository.criticalThreatsCompletionRate.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
-    val timeSpentPerCategory: StateFlow<List<CategoryDuration>> = repository.timeSpentPerCategory.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val timeToCompletePerCategory: StateFlow<List<CategoryDuration>> = repository.timeToCompletePerCategory.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val weeklyProductivity: StateFlow<List<DailyProductivity>> = repository.weeklyProductivity.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // ОБРАБОТЧИКИ СОБЫТИЙ
     fun toggleTaskStatus(task: Task) {
         viewModelScope.launch {
-            val currentProgress = userProgress.value
             repository.updateTaskStatus(
                 task = task,
-                isCompleted = !task.isCompleted,
-                currentProgress = currentProgress
+                isCompleted = !task.isCompleted
             )
         }
     }
@@ -73,10 +76,15 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
         }
     }
 
+    fun deleteTask(taskId: Int) {
+        viewModelScope.launch {
+            repository.deleteTask(taskId)
+        }
+    }
+
     fun completeRitual() {
         viewModelScope.launch {
-            val currentProgress = userProgress.value
-            repository.completeMorningRitual(currentProgress)
+            repository.completeMorningRitual()
             _showReadinessCheck.value = false
         }
     }
