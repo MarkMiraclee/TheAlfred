@@ -19,5 +19,10 @@ data class Progress(
     val intelligenceAndStrategyXp: Int = 0,
     val waynePersonaMaintenanceXp: Int = 0,
 
-    val lastUpdated: Long = System.currentTimeMillis()
+    val lastUpdated: Long = System.currentTimeMillis(),
+
+    // Понедельник 00:00 локального времени текущей недели.
+    // 0 = ещё не инициализировано (первый запуск после установки/обновления):
+    // тогда неделя фиксируется без сброса уже накопленного XP.
+    val weekStart: Long = 0
 )

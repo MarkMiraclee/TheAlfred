@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,6 +24,9 @@ import androidx.compose.ui.unit.sp
 import com.example.thealfred.ui.MissionViewModel
 import com.example.thealfred.ui.components.ProductivityChart
 import com.example.thealfred.ui.utils.DEBOUNCE_INTERVAL_MS
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,6 +35,9 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
     val completionRate by viewModel.criticalThreatsCompletionRate.collectAsState()
     val timeToCompletePerCategory by viewModel.timeToCompletePerCategory.collectAsState()
     val weeklyProductivity by viewModel.weeklyProductivity.collectAsState()
+    val weeklySummaries by viewModel.weeklySummaries.collectAsState()
+    val tasksCompletedThisWeek by viewModel.tasksCompletedThisWeek.collectAsState()
+    val userProgress by viewModel.userProgress.collectAsState()
     var lastClickTime by remember { mutableStateOf(0L) }
 
     fun debouncedAction(action: () -> Unit) {
@@ -62,6 +69,39 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
+            // Карточка: итог текущей недели (XP и ранг живут в недельном цикле)
+            if (userProgress != null) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "THIS WEEK (${formatWeekRange(userProgress!!.weekStart)})",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = userProgress!!.currentRank,
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "${userProgress!!.totalVigilancePoints} XP · $tasksCompletedThisWeek tasks",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
 
             // Карточка с графиком
             if (weeklyProductivity.isNotEmpty()) {
@@ -145,6 +185,69 @@ fun BatcaveLogScreen(viewModel: MissionViewModel, onNavigateBack: () -> Unit) {
                     }
                 }
             }
+
+            // История недель: снимки из weekly_summaries (все недели использования)
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "WEEKLY HISTORY",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        if (weeklySummaries.isEmpty()) {
+                            Text(
+                                text = "No completed weeks yet.",
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                fontSize = 14.sp
+                            )
+                        } else {
+                            weeklySummaries.forEach { week ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = formatWeekRange(week.weekStart),
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = "${week.tasksCompleted} tasks completed",
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "${week.totalXp} XP",
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                            fontSize = 14.sp
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = week.currentRank,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                                HorizontalDivider(color = Color.Gray.copy(alpha = 0.2f))
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -160,4 +263,11 @@ private fun formatDuration(millis: Long): String {
         minutes > 0 -> "${minutes}m ${seconds}s"
         else -> "${seconds}s"
     }
+}
+
+// Диапазон недели: «03.11 – 09.11»
+private fun formatWeekRange(weekStartMillis: Long): String {
+    val format = SimpleDateFormat("dd.MM", Locale.getDefault())
+    val end = weekStartMillis + TimeUnit.DAYS.toMillis(6) // воскресенье той же недели
+    return "${format.format(Date(weekStartMillis))} – ${format.format(Date(end))}"
 }

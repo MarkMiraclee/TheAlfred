@@ -81,4 +81,7 @@ interface TaskDao {
             "AND completedAt >= strftime('%s','now') * 1000 - 604800000"
     )
     fun getCompletedTasksInLastWeek(): Flow<List<Task>>
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 1 AND completedAt >= :from AND completedAt < :to")
+    suspend fun countCompletedBetween(from: Long, to: Long): Int
 }

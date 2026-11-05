@@ -3,6 +3,10 @@ package com.example.thealfred
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,6 +55,19 @@ class MainActivity : ComponentActivity() {
 fun AppContent(viewModel: MissionViewModel) {
     val userProgress by viewModel.userProgress.collectAsState()
     val showReadinessCheck by viewModel.showReadinessCheck.collectAsState()
+
+    // Каждый возврат приложения на передний план — перепроверяем день и неделю:
+    // сменится день -> снова спросим ритуал, сменится неделя -> сбросится XP
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) {
+                viewModel.refreshDayState()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // Определяем фон в зависимости от ранга; null (прогресс грузится) — без картинки,
     // чтобы дефолтный ранг D не мигал перед показом актуального фона

@@ -11,6 +11,7 @@ import java.util.Calendar
 class TaskRepository(private val db: AppDatabase, private val templateDao: TemplateDao) {
 
     private val taskDao = db.taskDao()
+    private val weeklySummaryDao = db.weeklySummaryDao()
 
     val activeTasksSortedByPriority: Flow<List<Task>> = taskDao.getActiveTasksSortedByPriority()
     val completedTasks: Flow<List<Task>> = taskDao.getCompletedTasks()
@@ -132,6 +133,88 @@ class TaskRepository(private val db: AppDatabase, private val templateDao: Templ
             threatLevel = template.threatLevel
         )
         insertTask(newTask)
+    }
+
+    /**
+     * Недельный цикл: при первом запуске после границы недели (понедельник 00:00
+     * локального времени) итог прошлой недели сохраняется в weekly_summaries,
+     * пропущенные недели записываются нулевыми, а XP, ранг и категории сбрасываются.
+     * Самое первое включение счётчика (weekStart = 0, после установки/обновления)
+     * фиксирует текущую неделю без сброса уже накопленного XP.
+     */
+    suspend fun ensureWeeklyReset() {
+        db.withTransaction {
+            val progress = taskDao.getProgressOnce() ?: return@withTransaction
+            val currentWeekStart = WeekUtils.startOfWeek(System.currentTimeMillis())
+
+            when {
+                // Первый запуск после установки/обновления — только фиксируем неделю
+                progress.weekStart == 0L ->
+                    taskDao.insertProgress(
+                        progress.copy(weekStart = currentWeekStart, lastUpdated = System.currentTimeMillis())
+                    )
+
+                // Неделя сменилась — снимок, пропуски и сброс
+                progress.weekStart != currentWeekStart -> {
+                    val finishedWeekEnd = WeekUtils.startOfWeek(progress.weekStart + WeekUtils.WEEK_MILLIS)
+
+                    weeklySummaryDao.insertWeeklySummary(
+                        WeeklySummary(
+                            weekStart = progress.weekStart,
+                            totalXp = progress.totalVigilancePoints,
+                            currentRank = progress.currentRank,
+                            operationalMissionsXp = progress.operationalMissionsXp,
+                            physicalConditioningXp = progress.physicalConditioningXp,
+                            intelligenceAndStrategyXp = progress.intelligenceAndStrategyXp,
+                            waynePersonaMaintenanceXp = progress.waynePersonaMaintenanceXp,
+                            tasksCompleted = taskDao.countCompletedBetween(progress.weekStart, finishedWeekEnd)
+                        )
+                    )
+
+                    // Недели, в которые приложение не открывалось, — нулевые записи
+                    var skipped = WeekUtils.startOfWeek(progress.weekStart + WeekUtils.WEEK_MILLIS)
+                    while (skipped < currentWeekStart) {
+                        weeklySummaryDao.insertWeeklySummary(
+                            WeeklySummary(
+                                weekStart = skipped,
+                                totalXp = 0,
+                                currentRank = VigilanteRanks.determineRank(0),
+                                operationalMissionsXp = 0,
+                                physicalConditioningXp = 0,
+                                intelligenceAndStrategyXp = 0,
+                                waynePersonaMaintenanceXp = 0,
+                                tasksCompleted = 0
+                            )
+                        )
+                        skipped = WeekUtils.startOfWeek(skipped + WeekUtils.WEEK_MILLIS)
+                    }
+
+                    // Сброс прогресса на новую неделю
+                    taskDao.insertProgress(
+                        progress.copy(
+                            totalVigilancePoints = 0,
+                            currentRank = VigilanteRanks.determineRank(0),
+                            operationalMissionsXp = 0,
+                            physicalConditioningXp = 0,
+                            intelligenceAndStrategyXp = 0,
+                            waynePersonaMaintenanceXp = 0,
+                            weekStart = currentWeekStart,
+                            lastUpdated = System.currentTimeMillis()
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    val weeklySummaries: Flow<List<WeeklySummary>> = weeklySummaryDao.getWeeklySummaries()
+
+    // Выполнено задач в текущей неделе (граница недели хранится в Progress)
+    val tasksCompletedThisWeek: Flow<Int> = combine(
+        taskDao.getCompletedTasks(),
+        userProgress
+    ) { tasks, progress ->
+        tasks.count { (it.completedAt ?: 0L) >= progress.weekStart }
     }
 
     val criticalThreatsCompletionRate: Flow<Float> = combine(

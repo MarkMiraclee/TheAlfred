@@ -25,7 +25,19 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
     val showReadinessCheck: StateFlow<Boolean?> = _showReadinessCheck.asStateFlow()
 
     init {
+        refreshDayState()
+    }
+
+    /**
+     * Полная проверка календарного состояния: недельный сброс XP/ранга,
+     * цитата дня и утренний ритуал. Вызывается при создании ViewModel
+     * и на каждый ON_START (возврат приложения на передний план),
+     * поэтому переход через полночь или понедельник подхватывается,
+     * даже если процесс прожил несколько дней.
+     */
+    fun refreshDayState() {
         viewModelScope.launch {
+            repository.ensureWeeklyReset()
             _dailyQuote.value = DailyQuoteManager.getQuote(getApplication<Application>().applicationContext)
             _showReadinessCheck.value = !repository.isRitualCompletedToday()
         }
@@ -59,6 +71,8 @@ class MissionViewModel(private val repository: TaskRepository, application: Appl
     val criticalThreatsCompletionRate: StateFlow<Float> = repository.criticalThreatsCompletionRate.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
     val timeToCompletePerCategory: StateFlow<List<CategoryDuration>> = repository.timeToCompletePerCategory.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val weeklyProductivity: StateFlow<List<DailyProductivity>> = repository.weeklyProductivity.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val weeklySummaries: StateFlow<List<WeeklySummary>> = repository.weeklySummaries.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val tasksCompletedThisWeek: StateFlow<Int> = repository.tasksCompletedThisWeek.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // ОБРАБОТЧИКИ СОБЫТИЙ
     fun toggleTaskStatus(task: Task) {
